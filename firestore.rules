@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /User/{userId} {
+    	//	user database
+    	// 	Authenticated user can read, create.
+    	// 	update are allowed if no fields are added 
+    	//	delete is not allowed (no deletion)
+      allow create: if request.auth != null;
+      allow read: if request.auth != null;
+      allow update: if request.auth != null
+      							&& (request.resource.data.keys() == resource.data.keys())
+                    &&	request.auth.uid == userId;
+    
+    }
+     match /quiz/{quizId}{
+     	//	quiz database
+      // 	Authenticated user can read.
+    	allow read: if request.auth != null;
+      //only allow create if the user is authenticated and is a teacher
+      allow create: if request.auth != null 
+      							&& get(/databases/$(database)/documents/User/$(request.auth.uid)).data.isTeacher == true;
+      
+    }
+  }
+}
